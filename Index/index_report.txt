@@ -1,0 +1,3 @@
+Number of Indexed Rooms: 47
+Number of Unique tokens: 61
+Index size on disk (final index + docmap + docstore): 49.11 KB
