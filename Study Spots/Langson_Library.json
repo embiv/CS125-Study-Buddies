@@ -5,7 +5,8 @@
     "timezone": "America/Los_Angeles",
     "hours": { "start": "08:00", "end": "22:30" },
     "slot_minutes": 30,
-    "slot_count": 29
+    "slot_count": 29,
+    "location": {"lat": 33.64715, "lon":-117.84109}
   },
   "date": "2026-02-06",
   "rooms": [
@@ -13,102 +14,119 @@
       "id": "langson-380",
       "name": "Langson 380",
       "capacity": 6,
+      "features": ["whiteboard", "group", "collaborative", "table", "large"],
       "slots_bitset": "11111111111100001111100000000"
     },
     {
       "id": "langson-382",
       "name": "Langson 382",
       "capacity": 6,
+      "features": ["whiteboard", "group", "collaborative", "table", "large"],
       "slots_bitset": "11111111111111100000111111111"
     },
     {
       "id": "langson-386",
       "name": "Langson 386",
       "capacity": 4,
+      "features": ["whiteboard", "group", "collaborative", "table"],
       "slots_bitset": "00001111111111111100000001111"
     },
     {
       "id": "langson-388",
       "name": "Langson 388",
       "capacity": 4,
+      "features": ["whiteboard", "group", "collaborative", "table"],
       "slots_bitset": "11111111110000011111111111111"
     },
     {
       "id": "langson-390",
       "name": "Langson 390",
       "capacity": 4,
+      "features": ["whiteboard", "group", "collaborative", "table"],
       "slots_bitset": "11111111111111000000011111111"
     },
     {
       "id": "langson-392",
       "name": "Langson 392",
       "capacity": 4,
+      "features": ["whiteboard", "group", "collaborative", "table"],
       "slots_bitset": "11111111000001100000111111111"
     },
     {
       "id": "langson-394",
       "name": "Langson 394",
       "capacity": 4,
+      "features": ["whiteboard", "group", "collaborative", "table"],
       "slots_bitset": "11111111111100011111111111000"
     },
     {
       "id": "langson-396",
       "name": "Langson 396",
       "capacity": 4,
+      "features": ["whiteboard", "group", "collaborative", "table"],
       "slots_bitset": "11111111111111110000000000000"
     },
     {
       "id": "study-pod-1a",
       "name": "Study Pod 1A",
       "capacity": 1,
+      "features": ["quiet", "single", "private"],
       "slots_bitset": "11111111111111100000111111111"
     },
     {
       "id": "study-pod-1b",
       "name": "Study Pod 1B",
       "capacity": 1,
+      "features": ["quiet", "single", "private"],
       "slots_bitset": "11111111111111111110000011111"
     },
     {
       "id": "study-pod-1c",
       "name": "Study Pod 1C",
       "capacity": 1,
+      "features": ["quiet", "single", "private"],
       "slots_bitset": "11111111111111111111111111111"
     },
     {
       "id": "study-pod-1d",
       "name": "Study Pod 1D",
       "capacity": 1,
+      "features": ["quiet", "single", "private"],
       "slots_bitset": "11111111111111111111111111111"
     },
     {
       "id": "study-pod-1e",
       "name": "Study Pod 1E",
       "capacity": 1,
+      "features": ["quiet", "single", "private"],
       "slots_bitset": "11111111111111111111111111111"
     },
     {
       "id": "study-pod-2a",
       "name": "Study Pod 2A",
       "capacity": 1,
+      "features": ["quiet", "single", "private"],
       "slots_bitset": "11111111111100001111111111111"
     },
     {
       "id": "study-pod-2b",
       "name": "Study Pod 2B",
       "capacity": 1,
+      "features": ["quiet", "single", "private"],
       "slots_bitset": "11111111111111111111111111111"
     },
     {
       "id": "study-pod-2c",
       "name": "Study Pod 2C",
       "capacity": 1,
+      "features": ["quiet", "single", "private"],
       "slots_bitset": "11111111111111100000111111111"
     },
     {
       "id": "study-pod-2d",
       "name": "Study Pod 2D",
       "capacity": 1,
+      "features": ["quiet", "single", "private"],
       "slots_bitset": "11111111111111111111111111111"
     }
   ]

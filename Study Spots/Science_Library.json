@@ -5,7 +5,8 @@
     "timezone": "America/Los_Angeles",
     "hours": { "start": "08:00", "end": "22:30" },
     "slot_minutes": 30,
-    "slot_count": 29
+    "slot_count": 29,
+    "location": {"lat": 33.64575, "lon":-117.84660}
   },
   "date": "2026-02-06",
   "rooms": [
@@ -13,180 +14,210 @@
       "id": "science-277",
       "name": "Science 277 (Tech Enhanced)",
       "capacity": 6,
+      "features": ["display", "group", "collaborative", "table", "large"],
       "slots_bitset": "11111111111111111100001111111"
     },
     {
       "id": "science-371",
       "name": "Science 371 (Tech Enhanced)",
       "capacity": 6,
+      "features": ["display", "group", "collaborative", "table", "large"],
       "slots_bitset": "11111111111110000011111111111"
     },
     {
       "id": "science-402",
       "name": "Science 402",
       "capacity": 4,
+      "features": ["whiteboard", "group", "collaborative", "table"],
       "slots_bitset": "11111111000011111111111111111"
     },
     {
       "id": "science-410",
       "name": "Science 410",
       "capacity": 6,
+      "features": ["whiteboard", "group", "collaborative", "table", "large"],
       "slots_bitset": "11111100001111100000111111111"
     },
     {
       "id": "science-471",
       "name": "Science 471",
       "capacity": 4,
+      "features": ["whiteboard", "group", "collaborative", "table"],
       "slots_bitset": "11111111111111111111111111111"
     },
     {
       "id": "science-472",
       "name": "Science 472",
       "capacity": 4,
+      "features": ["whiteboard", "group", "collaborative", "table"],
       "slots_bitset": "11100000111111111111111111111"
     },
     {
       "id": "science-476",
       "name": "Science 476",
       "capacity": 4,
+      "features": ["whiteboard", "group", "collaborative", "table"],
       "slots_bitset": "11111111111100001111111111111"
     },
     {
       "id": "science-477",
       "name": "Science 477",
       "capacity": 4,
+      "features": ["whiteboard", "group", "collaborative", "table"],
       "slots_bitset": "11000011111100011111111111000"
     },
     {
       "id": "science-478",
       "name": "Science 478",
       "capacity": 8,
+      "features": ["whiteboard", "group","groups", "collaborative", "table", "huge"],
       "slots_bitset": "11111100001110011100001111111"
     },
     {
       "id": "science-479",
       "name": "Science 479",
       "capacity": 5,
+      "features": ["whiteboard", "group", "collaborative", "table", "big"],
       "slots_bitset": "11111111100001111100001111111"
     },
     {
       "id": "science-482",
       "name": "Science 482",
       "capacity": 5,
+      "features": ["whiteboard", "group", "collaborative", "table", "big"],
       "slots_bitset": "00000000000000000000000000000"
     },
     {
       "id": "science-483",
       "name": "Science 483",
       "capacity": 5,
+      "features": ["whiteboard", "group", "collaborative", "table", "big"],
       "slots_bitset": "11111111111100001111100001111"
     },
     {
       "id": "science-484",
       "name": "Science 484",
       "capacity": 4,
+      "features": ["whiteboard", "group", "collaborative", "table"],
       "slots_bitset": "11111111110000011111111111111"
     },
     {
       "id": "science-486",
       "name": "Science 486",
       "capacity": 4,
+      "features": ["whiteboard", "group", "collaborative", "table"],
       "slots_bitset": "11111111111111111111111111111"
     },
     {
       "id": "science-490",
       "name": "Science 490",
       "capacity": 5,
+      "features": ["whiteboard", "group", "collaborative", "table", "big"],
       "slots_bitset": "11111111111111111111111111111"
     },
     {
       "id": "science-520",
       "name": "Science 520 (Tech Enhanced)",
       "capacity": 5,
+      "features": ["whiteboard", "group", "collaborative", "table", "big"],
       "slots_bitset": "11111111110000011111111111111"
     },
     {
       "id": "science-521",
       "name": "Science 521 (Tech Enhanced)",
       "capacity": 4,
+      "features": ["whiteboard", "group", "collaborative", "table"],
       "slots_bitset": "11111111111111111111111111111"
     },
     {
       "id": "science-526",
       "name": "Science 526 (Tech Enhanced)",
       "capacity": 5,
+      "features": ["whiteboard", "group", "collaborative", "table", "big"],
       "slots_bitset": "11111111111100011100011111111"
     },
     {
       "id": "science-527",
       "name": "Science 527 (Tech Enhanced)",
       "capacity": 5,
+      "features": ["whiteboard", "group", "collaborative", "table", "big"],
       "slots_bitset": "11111111111100111111111111111"
     },
     {
       "id": "science-528",
       "name": "Science 528 (Tech Enhanced)",
       "capacity": 4,
+      "features": ["whiteboard", "group", "collaborative", "table"],
       "slots_bitset": "11111111111111111111111111000"
     },
     {
       "id": "science-529",
       "name": "Science 529 (Tech Enhanced)",
       "capacity": 4,
+      "features": ["whiteboard", "group", "collaborative", "table"],
       "slots_bitset": "11111111111100001111111111111"
     },
     {
       "id": "science-530",
       "name": "Science 530 (Tech Enhanced)",
       "capacity": 6,
+      "features": ["whiteboard", "group", "collaborative", "table", "large"],
       "slots_bitset": "11110000000000000000000001111"
     },
     {
       "id": "science-531",
       "name": "Science 531 (Tech Enhanced)",
       "capacity": 4,
+      "features": ["whiteboard", "group", "collaborative", "table"],
       "slots_bitset": "11111111111100000000001111111"
     },
     {
       "id": "science-533",
       "name": "Science 533",
       "capacity": 4,
+      "features": ["whiteboard", "group", "collaborative", "table"],
       "slots_bitset": "11111111111100001111111111111"
     },
     {
       "id": "science-574",
       "name": "Science 574",
       "capacity": 5,
+      "features": ["whiteboard", "group", "collaborative", "table", "big"],
       "slots_bitset": "11111111000011100001111111111"
     },
     {
       "id": "science-579",
       "name": "Science 579",
       "capacity": 4,
+      "features": ["whiteboard", "group", "collaborative", "table"],
       "slots_bitset": "11111111100001111111111111000"
     },
     {
       "id": "science-602",
       "name": "Science 602",
       "capacity": 4,
+      "features": ["whiteboard", "group", "collaborative", "table"],
       "slots_bitset": "11100000011111111100000000000"
     },
     {
       "id": "science-610",
       "name": "Science 610",
       "capacity": 4,
+      "features": ["whiteboard", "group", "collaborative", "table"],
       "slots_bitset": "11111100001111111100001111111"
     },
     {
       "id": "study-pod-2a",
       "name": "Study Pod 2A",
       "capacity": 1,
+      "features": ["quiet", "single", "private"],
       "slots_bitset": "11111111110011110111111111111"
     },
     {
       "id": "study-pod-2b",
       "name": "Study Pod 2B",
       "capacity": 1,
+      "features": ["quiet", "single", "private"],
       "slots_bitset": "11111111111111111111111111111"
     }
   ]

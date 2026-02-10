@@ -6,7 +6,7 @@ from pathlib import Path
 from nltk.stem import PorterStemmer
 
 class Posting:
-    def __init__(self, uid: str, room_doc_id: int):
+    def __init__(self, room_doc_id: int):
         self.room_doc_id = room_doc_id
         self.term_freq = 1 # binary presence
         self.term_weight = 1.0
@@ -74,6 +74,10 @@ def extract_room_docs(file_path):
     space_name = space.get("name", file_path.stem)
     day = data.get("date", "")
 
+    space_loc = space.get("location", {}) or {}
+    space_lat = space_loc.get("lat", None)
+    space_lon = space_loc.get("lon", None)
+
     docs = []
     rooms = data.get("rooms", []) or []
 
@@ -82,6 +86,9 @@ def extract_room_docs(file_path):
         room_name = room.get("name", "")
         capacity = room.get("capacity", "")
         bitset = room.get("slots_bitset", "")
+
+        features = room.get("features", []) or []
+        features = [str(x).strip().lower() for x in features if str(x).strip()]
 
         uid = f"{space_id}:{room_id}:{day}"
 
@@ -94,6 +101,7 @@ def extract_room_docs(file_path):
             str(room_id),
             "capacity",
             str(capacity),
+            " ".join(features)
         ]).strip()
 
         terms = tokenize_and_stem(searchable_text)
@@ -103,12 +111,21 @@ def extract_room_docs(file_path):
             "terms": terms,
             "store": {
                 "uid" : uid,
-                "space": space,
+                "space": {
+                    "id": space_id,
+                    "name" : space_name,
+                    "timezone": space.get("timezone"),
+                    "hours": space.get("hours"),
+                    "slot_minutes" : space.get("slot_minutes"),
+                    "slot_count": space.get("slot_count"),
+                    "location": {"lat":space_lat, "lon":space_lon}
+                },
                 "date" : day,
                 "room" : {
                     "id" : room_id,
                     "name" : room_name,
                     "capacity" : capacity,
+                    "features": features,
                     "slots_bitset" : bitset 
                 }
             }
@@ -145,8 +162,8 @@ def make_partial_inverted_indexes(folderpath, out_folder, batch_size=10000):
     out_folder = Path(out_folder)
     out_folder.mkdir(parents=True, exist_ok=True)
 
-    docmap_path = out_folder / "docmap.tsv"
-    docstore_path = out_folder / "docstore.jsonl"
+    docmap_path = out_folder / "roomdocmap.tsv"
+    docstore_path = out_folder / "roomdocstore.jsonl"
 
     print("Creating Study Spot (binary) Index...")
 
@@ -185,7 +202,7 @@ def make_partial_inverted_indexes(folderpath, out_folder, batch_size=10000):
 
                             postings_for_term = index[term]
                             if room_doc_id not in postings_for_term:
-                                postings_for_term[room_doc_id] = Posting(uid, room_doc_id)
+                                postings_for_term[room_doc_id] = Posting(room_doc_id)
 
                         room_doc_id += 1
                         rooms_in_batch += 1
