@@ -121,7 +121,7 @@ def ask_user_preferences():
 
     # library preference
     while True:
-        library = input("Which library do you prefer? (SCIENCE/LANGSON/EITHER): ").strip().lower()
+        library = input("Which library do you prefer? (SCIENCE/LANGSON/NONE): ").strip().lower()
         if library in ["science", "langson", "none"]:
             break
         print("Please enter science, langson, or none.")
