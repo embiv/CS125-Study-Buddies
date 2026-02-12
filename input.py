@@ -76,28 +76,97 @@ def get_free_times_for_day(busy_intervals, day, tz, start_hour=8, end_hour=22, m
 
 def main():
     # load mock json schedule
-    with open('Schedules/mockweek.json', 'r',encoding="utf-8") as f:
+    with open('Schedules/mockweek.json', 'r', encoding="utf-8") as f:
         mock_json = json.load(f)
 
     busy_intervals = parse_google_freebusy(mock_json)
 
-    # timezone
     tz = pytz.timezone("America/Los_Angeles")
 
-    # define the week you want (Monday to Friday)
-    start_date = datetime(2026, 2, 10).date()  # Monday
+    start_date = datetime(2026, 2, 10).date()
     week_days = [start_date + timedelta(days=i) for i in range(5)]
 
-    # compute and print free times for each day
-    for day in week_days:
-        free_times = get_free_times_for_day(busy_intervals, day, tz, start_hour=8, end_hour=22, min_duration=30)
-        print(f"Free time blocks for {day.strftime('%A %Y-%m-%d')}:")
-        if free_times:
-            for start, end in free_times:
-                print(f"  {start.strftime('%H:%M')} - {end.strftime('%H:%M')}")
-        else:
-            print("  No free time")
-        print()
+    # ask questionnaire
+    prefs = ask_user_preferences()
+
+    with open("study_plan.txt", "w", encoding="utf-8") as out_file:
+        out_file.write("=== User Preferences ===\n")
+        out_file.write(f"Library: {prefs['library']}\n")
+        out_file.write(f"Group size: {prefs['group_size']}\n")
+        out_file.write(f"Study style: {prefs['noise']}\n")
+        out_file.write(f"Room size: {prefs['room_size']}\n\n")
+
+        out_file.write("=== Available Free Time Blocks ===\n\n")
+
+        for day in week_days:
+            free_times = get_free_times_for_day(
+                busy_intervals, day, tz,
+                start_hour=8, end_hour=22, min_duration=30
+            )
+
+            out_file.write(f"{day.strftime('%A %Y-%m-%d')}:\n")
+
+            if free_times:
+                for start, end in free_times:
+                    out_file.write(f"  {start.strftime('%H:%M')} - {end.strftime('%H:%M')}\n")
+            else:
+                out_file.write("  No free time\n")
+
+            out_file.write("\n")
+
+    print("Saved study preferences and free times to study_plan.txt")
+
+def ask_user_preferences():
+    print("=== Study Room Preferences ===")
+
+    # library preference
+    while True:
+        library = input("Which library do you prefer? (SCIENCE/LANGSON/EITHER): ").strip().lower()
+        if library in ["science", "langson", "none"]:
+            break
+        print("Please enter science, langson, or none.")
+
+    # group size
+    while True:
+        try:
+            group_size = int(input("How many people will study together? "))
+            if library == "science" and 1 <= group_size <= 8:
+                break
+            elif library == "langson" and 1 <= group_size <= 6:
+                break
+            elif library == "none" and 1 <= group_size <= 8:
+                break
+            else:
+                print("Invalid group size for that library.")
+        except ValueError:
+            print("Please enter a number.")
+
+    # noise preference
+    while True:
+        noise = input("Do you prefer QUIET or COLLABORATIVE?: ").strip().lower()
+        if noise in ["quiet", "collaborative"]:
+            break
+        print("Please enter quiet or collaborative.")
+    
+    # room size preference
+    while True:
+        room_size = input("Would you like a SPACIOUS or COMPACT space or EITHER?: ").strip().lower()
+        if room_size in ["spacious", "compact", "either"]:
+            break
+        print("Please enter a valid room size.")
+
+    return {
+        "library": library,
+        "group_size": group_size,
+        "noise": noise,
+        "room_size": room_size
+    }
 
 if __name__ == "__main__":
     main()
+
+# questionaire
+# langson or science library?
+# how many people ?
+# quiet or collaborative ?
+# spacious or compact ?
