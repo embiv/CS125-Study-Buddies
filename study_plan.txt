@@ -1,8 +1,8 @@
 === User Preferences ===
 Library: science
-Group size: 4
-Study style: collaborative
-Room size: either
+Group size: 5
+Study style: quiet
+Room size: spacious
 
 === Available Free Time Blocks ===
 
