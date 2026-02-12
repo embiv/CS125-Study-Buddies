@@ -13,9 +13,6 @@ def load_library(path):
     return library_name, (library_latitude, library_longitude)
 
 def get_closest_libraries(user_location, libraries):
-    for library_path in libraries:
-        load_library(library_path)
-    
     # stores libraries from closest to farthest
     results = []
 
