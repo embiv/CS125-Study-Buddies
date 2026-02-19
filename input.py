@@ -1,6 +1,82 @@
 import json
 from datetime import datetime, timedelta
 import pytz
+import os.path
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+
+def get_calendar_service():
+    """authenticate and return Google Calendar service object"""
+    from google_auth_oauthlib.flow import InstalledAppFlow
+    
+    SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
+    creds = None
+    
+    # stores user's access and refresh tokens into token.json
+    if os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    
+    # let the user log in if there are valid credentials aren't available
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'credentials.json', SCOPES)
+            creds = flow.run_local_server(port=3000, open_browser=True)
+        
+        # save credentials for next run
+        with open('token.json', 'w') as token:
+            token.write(creds.to_json())
+    
+    return build('calendar', 'v3', credentials=creds)
+
+def fetch_freebusy_from_api(calendar_ids, days_ahead=7):
+    """fetch free/busy info from Google Calendar API"""
+    try:
+        service = get_calendar_service()
+        
+        # set time range
+        tz = pytz.timezone("America/Los_Angeles")
+        time_min = datetime.now(tz)
+        time_max = time_min + timedelta(days=days_ahead)
+        
+        # time formats
+        time_min_str = time_min.isoformat().replace('+00:00', 'Z')
+        time_max_str = time_max.isoformat().replace('+00:00', 'Z')
+        
+        # prepare request body
+        freebusy_request = {
+            'timeMin': time_min_str,
+            'timeMax': time_max_str,
+            'timeZone': 'America/Los_Angeles',
+            'items': [{'id': cal_id} for cal_id in calendar_ids]
+        }
+        
+        # execute freebusy query
+        freebusy_response = service.freebusy().query(body=freebusy_request).execute()
+        
+        # parse response
+        busy_intervals = []
+        calendars_data = freebusy_response.get('calendars', {})
+        
+        for cal_id, cal_data in calendars_data.items():
+            for busy_period in cal_data.get('busy', []):
+                start = datetime.fromisoformat(busy_period['start'].replace('Z', '+00:00'))
+                end = datetime.fromisoformat(busy_period['end'].replace('Z', '+00:00'))
+                busy_intervals.append({'start': start, 'end': end})
+        
+        return busy_intervals
+        
+    except HttpError as error:
+        print(f'Google Calendar API error: {error}')
+        return None
+    except Exception as e:
+        print(f'Error fetching calendar data: {e}')
+        return None
+
 
 # parse mock file
 def parse_google_freebusy(json_response):
@@ -74,48 +150,6 @@ def get_free_times_for_day(busy_intervals, day, tz, start_hour=8, end_hour=22, m
     return find_free_time(day_busy, window_start, window_end, min_duration_minutes=min_duration)
 
 
-def main():
-    # load mock json schedule
-    with open('Schedules/mockweek.json', 'r', encoding="utf-8") as f:
-        mock_json = json.load(f)
-
-    busy_intervals = parse_google_freebusy(mock_json)
-
-    tz = pytz.timezone("America/Los_Angeles")
-
-    start_date = datetime(2026, 2, 10).date()
-    week_days = [start_date + timedelta(days=i) for i in range(5)]
-
-    # ask questionnaire
-    prefs = ask_user_preferences()
-
-    with open("study_plan.txt", "w", encoding="utf-8") as out_file:
-        out_file.write("=== User Preferences ===\n")
-        out_file.write(f"Library: {prefs['library']}\n")
-        out_file.write(f"Group size: {prefs['group_size']}\n")
-        out_file.write(f"Study style: {prefs['noise']}\n")
-        out_file.write(f"Room size: {prefs['room_size']}\n\n")
-
-        out_file.write("=== Available Free Time Blocks ===\n\n")
-
-        for day in week_days:
-            free_times = get_free_times_for_day(
-                busy_intervals, day, tz,
-                start_hour=8, end_hour=22, min_duration=30
-            )
-
-            out_file.write(f"{day.strftime('%A %Y-%m-%d')}:\n")
-
-            if free_times:
-                for start, end in free_times:
-                    out_file.write(f"  {start.strftime('%H:%M')} - {end.strftime('%H:%M')}\n")
-            else:
-                out_file.write("  No free time\n")
-
-            out_file.write("\n")
-
-    print("Saved study preferences and free times to study_plan.txt")
-
 def ask_user_preferences():
     print("=== Study Room Preferences ===")
 
@@ -161,6 +195,66 @@ def ask_user_preferences():
         "noise": noise,
         "room_size": room_size
     }
+
+def main():
+    print("=== Study Room Preferences ===")
+    print("Fetching your calendar availability...")
+    
+    # Try to get real calendar data
+    busy_intervals = fetch_freebusy_from_api(['primary'], days_ahead=7)
+    
+    # Fall back to mock if API fails
+    if busy_intervals is None:
+        print("Using mock schedule data (API not available)")
+        with open('Schedules/mockweek.json', 'r', encoding="utf-8") as f:
+            mock_json = json.load(f)
+        busy_intervals = parse_google_freebusy(mock_json)
+    else:
+        print("Successfully loaded your calendar!")
+    
+    # Timezone setup
+    tz = pytz.timezone("America/Los_Angeles")
+    
+    # Get dates for the next 5 weekdays
+    today = datetime.now(tz).date()
+    # Find next Monday if today is weekend
+    days_until_monday = (7 - today.weekday()) % 7
+    if days_until_monday == 0:
+        days_until_monday = 7
+    start_date = today + timedelta(days=days_until_monday)
+    week_days = [start_date + timedelta(days=i) for i in range(5)]
+    
+    # Ask user preferences (your existing function)
+    prefs = ask_user_preferences()
+    
+    # Save to file (your existing code)
+    with open("study_plan.txt", "w", encoding="utf-8") as out_file:
+        out_file.write("=== User Preferences ===\n")
+        out_file.write(f"Library: {prefs['library']}\n")
+        out_file.write(f"Group size: {prefs['group_size']}\n")
+        out_file.write(f"Study style: {prefs['noise']}\n")
+        out_file.write(f"Room size: {prefs['room_size']}\n\n")
+        
+        out_file.write("=== Your Available Free Time Blocks ===\n")
+        out_file.write(f"(Based on your Google Calendar)\n\n")
+        
+        for day in week_days:
+            free_times = get_free_times_for_day(
+                busy_intervals, day, tz,
+                start_hour=8, end_hour=22, min_duration=30
+            )
+            
+            out_file.write(f"{day.strftime('%A %Y-%m-%d')}:\n")
+            
+            if free_times:
+                for start, end in free_times:
+                    out_file.write(f"  {start.strftime('%H:%M')} - {end.strftime('%H:%M')}\n")
+            else:
+                out_file.write("  No free time\n")
+            
+            out_file.write("\n")
+    
+    print("\nSaved your preferences and free times to study_plan.txt")
 
 if __name__ == "__main__":
     main()

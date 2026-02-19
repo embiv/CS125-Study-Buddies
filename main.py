@@ -10,7 +10,7 @@ def main():
     load_room_docstore()
 
     # set user location
-    user_location = (33.646, -117.843)
+    user_location = (33.643, -117.8465)
 
     libraries = [
         load_library(r"C:\Users\katly\CS125-Study-Buddies\Study Spots\Langson_Library.json"),
@@ -23,23 +23,6 @@ def main():
 
     print(f"\nclosest library: {closest_library}")
 
-    # # filters
-    # min_cap = input("min capacity (press Enter to skip): ").strip()
-    # duration = input("study duration in min (press Enter to skip): ").strip()
-
-    # min_cap = int(min_cap) if min_cap else None
-    # duration = int(duration) if duration else 30
-
-    # search_options = ("\nSEARCH OPTIONS:"
-    #                   "\n\tlibs: langson, science"
-    #                   "\n\tcaps: cap 1, cap 4, cap 5, cap 6, cap 8"
-    #                   "\n\tfeatures: whiteboard, group, collaborative, table, large,"
-    #                   "\n\t          huge, big, quiet, single, private, display,"
-    #                   "\n\t          tech enhanced, groups"
-    #                   "\n        eg: 'langson whiteboard cap 4'"
-    #                   "\n\nsearch for (press Enter to skip): ")
-
-    # user_query = input(search_options).strip()
     load_room_docstore()
     print("\nStudy Spot Seach (Early Demo)")
     print("Type a query. Optional commands:")
@@ -47,6 +30,14 @@ def main():
     print("     :dur MIN")
     print("     :clear")
     print("     quit/exit")
+
+    print("\nSearch for options:"
+                      "\n\tlibs: langson, science"
+                      "\n\tcaps: 1, 4, 5, 6, 8"
+                      "\n\tfeatures: whiteboard, group, collaborative, table, large,"
+                      "\n\t          huge, big, quiet, single, private, display,"
+                      "\n\t          tech enhanced, groups, study"
+                      "\nExample queries: :cap 4, :dur 45, group, big\n")
 
     min_cap = None
     duration= None
