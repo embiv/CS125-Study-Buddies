@@ -13,8 +13,10 @@ def main():
     user_location = (33.643, -117.8465)
 
     libraries = [
-        load_library(r"C:\Users\katly\CS125-Study-Buddies\Study Spots\Langson_Library.json"),
-        load_library(r"C:\Users\katly\CS125-Study-Buddies\Study Spots\Science_Library.json")
+        # load_library(r"C:\Users\katly\CS125-Study-Buddies\Study Spots\Langson_Library.json"),
+        # load_library(r"C:\Users\katly\CS125-Study-Buddies\Study Spots\Science_Library.json")
+        load_library(r"/home/ecasasca/cs125/CS125-Study-Buddies/Study Spots/Langson_Library.json"),
+        load_library(r"/home/ecasasca/cs125/CS125-Study-Buddies/Study Spots/Science_Library.json")
     ]
 
     # find closest library
