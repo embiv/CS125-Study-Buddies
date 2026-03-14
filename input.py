@@ -8,7 +8,6 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 def get_calendar_service():
-    """authenticate and return Google Calendar service object"""
     from google_auth_oauthlib.flow import InstalledAppFlow
     
     SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
@@ -34,7 +33,6 @@ def get_calendar_service():
     return build('calendar', 'v3', credentials=creds)
 
 def fetch_freebusy_from_api(calendar_ids, days_ahead=7):
-    """fetch free/busy info from Google Calendar API"""
     try:
         service = get_calendar_service()
         

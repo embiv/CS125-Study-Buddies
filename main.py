@@ -1,6 +1,40 @@
 from location import get_closest_libraries, load_library
 from retrieval import load_room_docstore, retrieve_5_rooms, print_topres
+from input import fetch_freebusy_from_api, parse_google_freebusy, get_free_times_for_day, find_free_time
+import json
+from datetime import datetime, timedelta
+import pytz
 
+def check_user_availability(duration_minutes=30):
+    print("\nChecking your Google Calendar availability...")
+    
+    # try to get calendar data
+    busy_intervals = fetch_freebusy_from_api(['primary'], days_ahead=7)
+    
+    # if api fails use mock schedule
+    if busy_intervals is None:
+        print("API not available, using mock schedule data")
+        try:
+            with open('Schedules/mockweek.json', 'r', encoding="utf-8") as f:
+                mock_json = json.load(f)
+            busy_intervals = parse_google_freebusy(mock_json)
+        except FileNotFoundError:
+            print("   No mock schedule found, continuing without availability data")
+            return None, None, None
+    else:
+        print("Successfully loaded your calendar!")
+    
+    tz = pytz.timezone("America/Los_Angeles")
+    
+    # get free times from today
+    today = datetime.now(tz).date()
+    free_times = get_free_times_for_day(
+        busy_intervals, today, tz,
+        start_hour=8, end_hour=22, 
+        min_duration=duration_minutes
+    )
+    
+    return free_times, busy_intervals, tz
 
 def main():
     print("\nStuddy Buddies!\n\tEveryone's favorite study spot recommendor")
@@ -13,10 +47,10 @@ def main():
     user_location = (33.643, -117.8465)
 
     libraries = [
-        # load_library(r"C:\Users\katly\CS125-Study-Buddies\Study Spots\Langson_Library.json"),
-        # load_library(r"C:\Users\katly\CS125-Study-Buddies\Study Spots\Science_Library.json")
-        load_library(r"/home/ecasasca/cs125/CS125-Study-Buddies/Study Spots/Langson_Library.json"),
-        load_library(r"/home/ecasasca/cs125/CS125-Study-Buddies/Study Spots/Science_Library.json")
+        load_library(r"C:\Users\katly\CS125-Study-Buddies\Study Spots\Langson_Library.json"),
+        load_library(r"C:\Users\katly\CS125-Study-Buddies\Study Spots\Science_Library.json")
+        # load_library(r"/home/ecasasca/cs125/CS125-Study-Buddies/Study Spots/Langson_Library.json"),
+        # load_library(r"/home/ecasasca/cs125/CS125-Study-Buddies/Study Spots/Science_Library.json")
     ]
 
     # find closest library
@@ -24,6 +58,9 @@ def main():
     closest_library = libraries_results[0][0]
 
     print(f"\nclosest library: {closest_library}")
+
+    print("\nChecking your availability...")
+    free_times, busy_intervals, tz = check_user_availability(30)
 
     load_room_docstore()
     print("\nStudy Spot Seach (Early Demo)")
