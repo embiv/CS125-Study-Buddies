@@ -1,2 +1,36 @@
 .venv/
+# Google OAuth credentials - NEVER COMMIT THESE!
+credentials.json
+token.json
+*.token.json
+
+# Python cache files
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Environment variables
+.env
+*.env
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+
+# Project specific
+study_plan.txt
+*.log
