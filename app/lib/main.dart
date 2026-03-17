@@ -115,16 +115,22 @@ class _SearchPageState extends State<SearchPage> {
                 separatorBuilder: (_, __) => const Divider(),
                 itemBuilder: (_, i) {
                   // Your backend returns: [roomId, score, startTime, [terms]]
-                  final r = _results[i] as List<dynamic>;
-                  final roomId = r[0];
-                  final score = r[1];
-                  final startTime = r[2];
-                  final terms = (r[3] as List<dynamic>).join(", ");
+                  final r = _results[i] as Map<String, dynamic>;
+                  
+                  final spaceName = r["space_name"] ?? "Unknown Space";
+                  final roomName = r["room_name"] ?? "Unknown Room";
+                  final capacity = r["capacity"] ?? "?";
+                  final startTime = r["start_time"] ?? "Unknown";
+                  final matchedTerms = (r["matched_terms"] as List<dynamic>? ?? []).join(", ")
+                  final matchCount = r["match_count"] ?? 0;
 
                   return ListTile(
-                    title: Text("Room $roomId • $startTime"),
-                    subtitle: Text("Matches: $terms"),
-                    trailing: Text(score.toString()),
+                    title: Text("$spaceName - $roomName"),
+                    subtitle: Text(
+                      "Capacity: $capacity\nMatched keywords: $matchedTerms\nStar time: $startTime",
+                      ),
+                    trailing: Text(matchCount.toString()),
+                    isThreeLine: true,
                   );
                 },
               ),

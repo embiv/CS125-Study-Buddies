@@ -120,6 +120,7 @@ def search_or(query):
             matches[d].add(s)
     return matches
 
+#changing to results to dict so that flutter can get the expected output
 def retrieve_5_rooms(query, min_capacity=None, duration_minutes=None, k=5):
     if duration_minutes is None:
         duration_minutes = 30
@@ -133,7 +134,10 @@ def retrieve_5_rooms(query, min_capacity=None, duration_minutes=None, k=5):
         if not meta:
             continue
 
-        cap = meta["room"].get("capacity")
+        room = meta.get("room", {})
+        space = meta.get("space", {})
+
+        cap = room.get("capacity")
         if min_capacity is not None and (cap is None or cap < min_capacity):
             continue
 
@@ -142,9 +146,17 @@ def retrieve_5_rooms(query, min_capacity=None, duration_minutes=None, k=5):
             continue
 
         match_count = len(matched_terms)
-        results.append((roomdoc_id, match_count, start_time, matched_terms))
+        results.append({
+            "roomdoc_id": roomdoc_id,
+            "space_name": space.get("name"),
+            "room_name": room.get("name"),
+            "capacity": cap,
+            "match_count": match_count,
+            "start_time": start_time,
+            "matched_terms": sorted(matched_terms),
+        })
     
-    results.sort(key=lambda x: x[1], reverse=True)
+    results.sort(key=lambda x: x["match_count"], reverse=True)
     results = results[:k]
 
     ms = (time.perf_counter() - t0) * 1000
@@ -152,6 +164,7 @@ def retrieve_5_rooms(query, min_capacity=None, duration_minutes=None, k=5):
     return results
 
 # output results
+# also changing to work with above changes
 def print_topres(results):
     print("\nTop 5 Recommended Study Spots")
     print("-" * 35)
@@ -160,20 +173,17 @@ def print_topres(results):
         print("No available study spots match the query")
         return
     
-    for i, (roomdoc_id, match_count, start_time, matched_terms) in enumerate(results, 1):
-        meta = ROOMDOCSTORE[roomdoc_id]
-        space = meta["space"]
-        room = meta["room"]
-        matched_terms = ", ".join(sorted(matched_terms))
+    for i, r in enumerate(results, 1):
+        matched_terms = ", ".join(r["matched_terms"])
 
         print(
-            f"{i}. {space['name']} - {room['name']}\n"
-            f"    Capacity: {room['capacity']} | "
+            f"{i}. {r['space_name']} - {r['room_name']}\n"
+            f"    Capacity: {r['capacity']} | "
             f"Matched keywords: {matched_terms}"
         )
 
-        if start_time:
-            print(f"    First available start time: {start_time}")
+        if r["start_time"]:
+            print(f"    First available start time: {r['start_time']}")
         print()
 
 def main():
