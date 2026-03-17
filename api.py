@@ -53,21 +53,11 @@ def search(
         k=k,
     )
 
-    formatted_results = [
-        {
-            "room_id" : r[0],
-            "score": r[1],
-            "available_start": r[2],
-            "matched_terms": r[3],
-        }
-        for r in results
-    ]
-
     return {
         "query": q,
         "cap": cap,
         "dur": dur,
-        "results": formatted_results,
+        "results": results,
     }
 
 @app.get("/study-spots")
@@ -84,24 +74,15 @@ def study_spots(
     libraries_results = get_closest_libraries(user_location, LIBRARIES)
     closest_library = libraries_results[0][0]
 
-    enhanced_query = f"{closest_library} {q}".strip()
+    #enhanced_query = f"{closest_library} {q}".strip()
 
     results = retrieve_5_rooms(
-        enhanced_query,
+        q,
         min_capacity=cap,
         duration_minutes=dur,
         k=k,
+        closest_library=closest_library,
     )
-
-    formatted_results = [
-        {
-            "room_id": r[0],
-            "score": r[1],
-            "available_start": r[2],
-            "matched_terms": r[3],
-        }
-        for r in results
-    ]
 
     formatted_libraries = [
         {
@@ -113,7 +94,7 @@ def study_spots(
 
     return {
         "query": q,
-        "enhanced_query": enhanced_query,
+        #"enhanced_query": enhanced_query,
         "user_location": {
             "lat": lat,
             "lon": lon,
@@ -122,7 +103,7 @@ def study_spots(
         "libraries_by_distance": formatted_libraries,
         "cap": cap,
         "dur": dur,
-        "results": formatted_results,
+        "results": results,
     }
 
 

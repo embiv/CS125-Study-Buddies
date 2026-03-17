@@ -121,13 +121,21 @@ def search_or(query):
     return matches
 
 #changing to results to dict so that flutter can get the expected output
-def retrieve_5_rooms(query, min_capacity=None, duration_minutes=None, k=5):
+def retrieve_5_rooms(query, min_capacity=None, duration_minutes=None, k=5, closest_library=None):
     if duration_minutes is None:
         duration_minutes = 30
     
     t0 = time.perf_counter()
     matches = search_or(query)
     results = []
+
+    query_lower = query.lower().strip()
+
+    requested_library = None
+    if "langson" in query_lower:
+        requested_library = "langson"
+    elif "science" in query_lower:
+        requested_library = "science"
 
     for roomdoc_id, matched_terms in matches.items():
         meta = ROOMDOCSTORE.get(roomdoc_id)
@@ -136,27 +144,42 @@ def retrieve_5_rooms(query, min_capacity=None, duration_minutes=None, k=5):
 
         room = meta.get("room", {})
         space = meta.get("space", {})
-
         cap = room.get("capacity")
+
         if min_capacity is not None and (cap is None or cap < min_capacity):
             continue
 
         start_time = first_available_start(meta, duration_minutes)
         if start_time is None:
             continue
+        
+        space_name = (space.get("name") or "")
+        space_name_lower = space_name.lower()
 
-        match_count = len(matched_terms)
+        text_score = len(matched_terms)
+
+        proximity_score = 0
+        if closest_library and closest_library.lower() in space_name_lower:
+            proximity_score = 2
+        
+        library_match_score = 0
+        if requested_library and requested_library in space_name_lower:
+            library_match_score = 5
+        
+        final_score = text_score + proximity_score + library_match_score
+
         results.append({
             "roomdoc_id": roomdoc_id,
             "space_name": space.get("name"),
             "room_name": room.get("name"),
             "capacity": cap,
-            "match_count": match_count,
+            "match_count": text_score,
+            "score": final_score,
             "start_time": start_time,
             "matched_terms": sorted(matched_terms),
         })
     
-    results.sort(key=lambda x: x["match_count"], reverse=True)
+    results.sort(key=lambda x: (x["score"], x["match_count"]), reverse=True)
     results = results[:k]
 
     ms = (time.perf_counter() - t0) * 1000
