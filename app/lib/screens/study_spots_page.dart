@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../models/user_preferences.dart';
+import 'map_page.dart';
 
 class StudySpotsPage extends StatefulWidget {
   final UserPreferences preferences;
@@ -130,42 +131,57 @@ class _StudySpotsPageState extends State<StudySpotsPage> {
                           final room = results[index];
                           final matchedTerms =
                               List<String>.from(room["matched_terms"] ?? []);
-
-                          return Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    room["space_name"] ?? "Unknown Space",
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
+                          
+                          return InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => MapPage(
+                                    userLat: 33.643,
+                                    userLon: -117.8465,
+                                    spots: results,
+                                    selectedIndex: index,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "#${index + 1} ${room["space_name"] ?? "Unknown Space"}",
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    room["room_name"] ?? "Unknown",
-                                    style: const TextStyle(fontSize: 20),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    "Capacity: ${room["capacity"]} | Start: ${room["start_time"]}",
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    "Score: ${room["score"] ?? room["match_count"]}",
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Wrap(
-                                    spacing: 6,
-                                    runSpacing: 6,
-                                    children: matchedTerms
-                                        .map((term) => Chip(label: Text(term)))
-                                        .toList(),
-                                  ),
-                                ],
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      room["room_name"] ?? "Unknown",
+                                      style: const TextStyle(fontSize: 20),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      "Capacity: ${room["capacity"]} | Start: ${room["start_time"]}",
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      "Score: ${room["score"] ?? room["match_count"]}",
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Wrap(
+                                      spacing: 6,
+                                      runSpacing: 6,
+                                      children: matchedTerms
+                                          .map((term) => Chip(label: Text(term)))
+                                          .toList(),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           );

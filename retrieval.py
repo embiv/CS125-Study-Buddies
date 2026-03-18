@@ -181,6 +181,8 @@ def retrieve_5_rooms(query, max_capacity=None, duration_minutes=None, k=5, close
         
         final_score = text_score + proximity_score + library_score + feature_score
 
+        location = space.get("location", {})
+
         results.append({
             "roomdoc_id": roomdoc_id,
             "space_name": space.get("name"),
@@ -197,6 +199,8 @@ def retrieve_5_rooms(query, max_capacity=None, duration_minutes=None, k=5, close
             "start_time": start_time,
             "matched_terms": sorted(matched_terms),
             "matched_preferences": matched_feature_prefs,
+            "lat": location.get("lat"),
+            "lon": location.get("lon"),
         })
     
     results.sort(key=lambda x: (x["score"], x["match_count"]), reverse=True)
