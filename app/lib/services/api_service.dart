@@ -10,10 +10,32 @@ class ApiService {
     required double lon,
     int? cap,
     int dur = 30,
+    int k = 5,
+    String? preferredLibrary,
+    List<String>? features,
   }) async {
-    final uri = Uri.parse(
-      "$baseUrl/study-spots?q=$query&lat=$lat&lon=$lon&dur=$dur${cap != null ? '&cap=$cap' : ''}",
-    );
+    final queryParams = <String, String>{
+      'q': query,
+      'lat': lat.toString(),
+      'lon': lon.toString(),
+      'dur': dur.toString(),
+      'k': k.toString(),
+    };
+
+    if (cap != null) {
+      queryParams['cap'] = cap.toString();
+    }
+
+    if (preferredLibrary != null && preferredLibrary != "Any") {
+      queryParams['preferred_library'] = preferredLibrary;
+    }
+
+    if (features != null && features.isNotEmpty) {
+      queryParams['features'] = features.join(',');
+    }
+
+    final uri = Uri.parse("$baseUrl/study-spots")
+        .replace(queryParameters: queryParams);
 
     final response = await http.get(uri);
 

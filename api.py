@@ -48,7 +48,7 @@ def search(
 ):
     results = retrieve_5_rooms(
         q,
-        min_capacity=cap,
+        max_capacity=cap,
         duration_minutes=dur,
         k=k,
     )
@@ -65,9 +65,11 @@ def study_spots(
     q: str = Query(""),
     lat: float = Query(...),
     lon: float = Query(...),
-    cap: Optional[int] = None,
+    cap: Optional[int] = None, #max_cap
     dur: int = 30,
     k: int = 5,
+    preferred_library: Optional[str] = None,
+    features: Optional[str] = None
 ):
     user_location = (lat, lon)
 
@@ -76,12 +78,18 @@ def study_spots(
 
     #enhanced_query = f"{closest_library} {q}".strip()
 
+    features_list = []
+    if features:
+        features_list = [f.strip().lower() for f in features.split(",") if f.strip()]
+
     results = retrieve_5_rooms(
         q,
-        min_capacity=cap,
+        max_capacity=cap,
         duration_minutes=dur,
         k=k,
         closest_library=closest_library,
+        preferred_library=preferred_library,
+        preferred_features=features_list,
     )
 
     formatted_libraries = [
@@ -100,6 +108,8 @@ def study_spots(
             "lon": lon,
         },
         "closest_library": closest_library,
+        "preferred_library": preferred_library,
+        "features": features_list,
         "libraries_by_distance": formatted_libraries,
         "cap": cap,
         "dur": dur,
@@ -160,7 +170,7 @@ def profile():
     return {
         "name": "Emmanuel",
         "preferences": {
-            "min_capacity": 4,
+            "max_capacity": 4,
             "duration": 30,
             "features": ["quiet", "whiteboard"]
         }

@@ -121,23 +121,21 @@ def search_or(query):
     return matches
 
 #changing to results to dict so that flutter can get the expected output
-def retrieve_5_rooms(query, min_capacity=None, duration_minutes=None, k=5, closest_library=None):
+def retrieve_5_rooms(query, max_capacity=None, duration_minutes=None, k=5, closest_library=None, preferred_library=None, preferred_features=None):
     if duration_minutes is None:
         duration_minutes = 30
+
+    if preferred_features is None:
+        preferred_features = []
     
     t0 = time.perf_counter()
-    matches = search_or(query)
+    matches = search_or(query) if query.strip() else {}
     results = []
 
-    query_lower = query.lower().strip()
+    candidate_room_ids = set(matches.keys()) if query.strip() else set(ROOMDOCSTORE.keys())
 
-    requested_library = None
-    if "langson" in query_lower:
-        requested_library = "langson"
-    elif "science" in query_lower:
-        requested_library = "science"
-
-    for roomdoc_id, matched_terms in matches.items():
+    
+    for roomdoc_id in candidate_room_ids:
         meta = ROOMDOCSTORE.get(roomdoc_id)
         if not meta:
             continue
@@ -146,37 +144,59 @@ def retrieve_5_rooms(query, min_capacity=None, duration_minutes=None, k=5, close
         space = meta.get("space", {})
         cap = room.get("capacity")
 
-        if min_capacity is not None and (cap is None or cap < min_capacity):
+        if max_capacity is not None and (cap is None or cap > max_capacity):
             continue
 
         start_time = first_available_start(meta, duration_minutes)
         if start_time is None:
             continue
         
-        space_name = (space.get("name") or "")
+        space_name = (space.get("name", "") or "")
+        room_name = (room.get("name", "") or "")
         space_name_lower = space_name.lower()
 
-        text_score = len(matched_terms)
+        matched_terms = matches.get(roomdoc_id, set())
+        match_count = len(matched_terms)
+
+        text_score = match_count
 
         proximity_score = 0
         if closest_library and closest_library.lower() in space_name_lower:
             proximity_score = 2
         
-        library_match_score = 0
-        if requested_library and requested_library in space_name_lower:
-            library_match_score = 5
+        library_score = 0
+        if preferred_library and preferred_library.lower() != "any":
+            if preferred_library.lower() in space_name_lower:
+                library_score = 5
+
+        # feature preference score
+        room_text = f"{space_name} {room_name}".lower()
+        feature_score = 0
+        matched_feature_prefs = []
+
+        for feature in preferred_features:
+            if feature in room_text or feature in matched_terms:
+                feature_score += 2
+                matched_feature_prefs.append(feature)
         
-        final_score = text_score + proximity_score + library_match_score
+        final_score = text_score + proximity_score + library_score + feature_score
 
         results.append({
             "roomdoc_id": roomdoc_id,
             "space_name": space.get("name"),
             "room_name": room.get("name"),
             "capacity": cap,
-            "match_count": text_score,
+            "match_count": match_count,
             "score": final_score,
+            "score_breakdown":{
+                "text": text_score,
+                "proximity": proximity_score,
+                "library": library_score,
+                "features": feature_score,
+            },
             "start_time": start_time,
             "matched_terms": sorted(matched_terms),
+            "matched_preferences": matched_feature_prefs,
         })
     
     results.sort(key=lambda x: (x["score"], x["match_count"]), reverse=True)
@@ -218,7 +238,7 @@ def main():
     print("     :clear")
     print("     quit/exit")
 
-    min_cap = None
+    max_cap = None
     duration= None
 
     while True:
@@ -230,8 +250,8 @@ def main():
             break
 
         if query.startswith(":cap"):
-            min_cap = int(query.split()[1])
-            print(f"Min capacity set to {min_cap}")
+            max_cap = int(query.split()[1])
+            print(f"Min capacity set to {max_cap}")
             continue
 
         if query.startswith(":dur"):
@@ -240,12 +260,12 @@ def main():
             continue
 
         if query.startswith(":clear"):
-            min_cap = None
+            max_cap = None
             duration = None
             print(f"Filters cleared")
             continue
 
-        results = retrieve_5_rooms(query, min_capacity=min_cap, duration_minutes=(duration or 30), k=5)
+        results = retrieve_5_rooms(query, max_capacity=max_cap, duration_minutes=(duration or 30), k=5)
         print_topres(results)
 
 

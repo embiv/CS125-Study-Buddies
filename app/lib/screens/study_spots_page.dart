@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../models/user_preferences.dart';
 
 class StudySpotsPage extends StatefulWidget {
-  const StudySpotsPage({super.key});
+  final UserPreferences preferences;
+  final int searchTrigger;
+
+  const StudySpotsPage({
+    super.key,
+    required this.preferences,
+    required this.searchTrigger,
+  });
 
   @override
   State<StudySpotsPage> createState() => _StudySpotsPageState();
@@ -13,15 +21,28 @@ class _StudySpotsPageState extends State<StudySpotsPage> {
   Map<String, dynamic>? data;
   bool loading = false;
 
+  @override
+  void didUpdateWidget(covariant StudySpotsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.searchTrigger != oldWidget.searchTrigger) {
+      if (controller.text.trim().isNotEmpty) {
+        search();
+      }
+    }
+  }
+
   Future<void> search() async {
     setState(() => loading = true);
 
     final result = await ApiService.getStudySpots(
-      query: controller.text,
+      query: controller.text.trim(),
       lat: 33.643,
       lon: -117.8465,
-      cap: null,
-      dur: 30,
+      cap: widget.preferences.maxCapacity,
+      dur: widget.preferences.duration,
+      preferredLibrary: widget.preferences.preferredLibrary,
+      features: widget.preferences.features.toList(),
     );
 
     setState(() {
