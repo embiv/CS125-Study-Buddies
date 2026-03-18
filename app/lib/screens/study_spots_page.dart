@@ -28,7 +28,6 @@ class _StudySpotsPageState extends State<StudySpotsPage> {
 
     if (widget.searchTrigger != oldWidget.searchTrigger) {
       search();
-
     }
   }
 
@@ -37,8 +36,8 @@ class _StudySpotsPageState extends State<StudySpotsPage> {
 
     final result = await ApiService.getStudySpots(
       query: controller.text.trim(),
-      lat: 33.643,
-      lon: -117.8465,
+      lat: widget.preferences.userLat,
+      lon: widget.preferences.userLon,
       cap: widget.preferences.maxCapacity,
       dur: widget.preferences.duration,
       preferredLibrary: widget.preferences.preferredLibrary,
@@ -103,8 +102,13 @@ class _StudySpotsPageState extends State<StudySpotsPage> {
               )
             else if (data != null) ...[
               Text("Closest: ${data!["closest_library"]}"),
+              const SizedBox(height: 4),
+              Text(
+                "User location: (${widget.preferences.userLat}, ${widget.preferences.userLon})",
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
               const SizedBox(height: 10),
-              
+
               if (results.isNotEmpty)
                 SizedBox(
                   width: double.infinity,
@@ -114,8 +118,8 @@ class _StudySpotsPageState extends State<StudySpotsPage> {
                         context,
                         MaterialPageRoute(
                           builder: (_) => MapPage(
-                            userLat: 33.643,
-                            userLon: -117.8465,
+                            userLat: widget.preferences.userLat,
+                            userLon: widget.preferences.userLon,
                             spots: results,
                             selectedIndex: null,
                           ),
@@ -155,15 +159,15 @@ class _StudySpotsPageState extends State<StudySpotsPage> {
                           final room = results[index];
                           final matchedTerms =
                               List<String>.from(room["matched_terms"] ?? []);
-                          
+
                           return InkWell(
                             onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => MapPage(
-                                    userLat: 33.643,
-                                    userLon: -117.8465,
+                                    userLat: widget.preferences.userLat,
+                                    userLon: widget.preferences.userLon,
                                     spots: results,
                                     selectedIndex: index,
                                   ),

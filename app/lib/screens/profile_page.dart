@@ -22,6 +22,8 @@ class _ProfilePageState extends State<ProfilePage> {
   late int? maxCapacity;
   late int duration;
   late Set<String> features;
+  late TextEditingController latController;
+  late TextEditingController lonController;
 
   final List<String> featureOptions = [
     "quiet",
@@ -38,15 +40,50 @@ class _ProfilePageState extends State<ProfilePage> {
     maxCapacity = widget.preferences.maxCapacity;
     duration = widget.preferences.duration;
     features = Set<String>.from(widget.preferences.features);
+
+    latController = TextEditingController(
+      text: widget.preferences.userLat.toString(),
+    );
+    lonController = TextEditingController(
+      text: widget.preferences.userLon.toString(),
+    );
+  }
+
+  @override
+  void dispose() {
+    latController.dispose();
+    lonController.dispose();
+    super.dispose();
+  }
+
+  void setPresetLocation(double lat, double lon) {
+    setState(() {
+      latController.text = lat.toString();
+      lonController.text = lon.toString();
+    });
   }
 
   void savePreferences() {
+    final parsedLat = double.tryParse(latController.text.trim());
+    final parsedLon = double.tryParse(lonController.text.trim());
+
+    if (parsedLat == null || parsedLon == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please enter valid latitude and longitude."),
+        ),
+      );
+      return;
+    }
+
     widget.onPreferencesChanged(
       UserPreferences(
         preferredLibrary: preferredLibrary,
         maxCapacity: maxCapacity,
         duration: duration,
         features: features,
+        userLat: parsedLat,
+        userLon: parsedLon,
       ),
     );
 
@@ -152,6 +189,69 @@ class _ProfilePageState extends State<ProfilePage> {
                 },
               );
             }).toList(),
+          ),
+
+          const SizedBox(height: 30),
+
+          const Text(
+            "Test User Location",
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            "Set a latitude and longitude to simulate a different user location.",
+          ),
+          const SizedBox(height: 12),
+
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton(
+                onPressed: () => setPresetLocation(33.6446, -117.8435),
+                child: const Text("Infinity Fountain"),
+              ),
+              OutlinedButton(
+                onPressed: () => setPresetLocation(33.6441, -117.8400),
+                child: const Text("ECT"),
+              ),
+              OutlinedButton(
+                onPressed: () => setPresetLocation(33.6496, -117.8427),
+                child: const Text("Student Center"),
+              ),
+              OutlinedButton(
+                onPressed: () => setPresetLocation(33.643, -117.8465),
+                child: const Text("Lot 16"),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          TextField(
+            controller: latController,
+            keyboardType: const TextInputType.numberWithOptions(
+              decimal: true,
+              signed: true,
+            ),
+            decoration: const InputDecoration(
+              labelText: "Latitude",
+              border: OutlineInputBorder(),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          TextField(
+            controller: lonController,
+            keyboardType: const TextInputType.numberWithOptions(
+              decimal: true,
+              signed: true,
+            ),
+            decoration: const InputDecoration(
+              labelText: "Longitude",
+              border: OutlineInputBorder(),
+            ),
           ),
 
           const SizedBox(height: 30),
