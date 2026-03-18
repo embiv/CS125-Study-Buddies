@@ -104,6 +104,30 @@ class _StudySpotsPageState extends State<StudySpotsPage> {
             else if (data != null) ...[
               Text("Closest: ${data!["closest_library"]}"),
               const SizedBox(height: 10),
+              
+              if (results.isNotEmpty)
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => MapPage(
+                            userLat: 33.643,
+                            userLon: -117.8465,
+                            spots: results,
+                            selectedIndex: null,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.map),
+                    label: const Text("View All Results on Map"),
+                  ),
+                ),
+
+              if (results.isNotEmpty) const SizedBox(height: 10),
 
               Expanded(
                 child: Column(
