@@ -4,8 +4,7 @@ from pathlib import Path
 from datetime import datetime
 import json
 import pytz
-
-
+from fastapi.middleware.cors import CORSMiddleware # just to help with web development
 from location import get_closest_libraries, load_library
 from retrieval import load_room_docstore, retrieve_5_rooms
 from input import fetch_freebusy_from_api, parse_google_freebusy, get_free_times_for_day
@@ -20,6 +19,13 @@ SCHEDULES_DIR = BASE / "Schedules"
 LIBRARIES = []
 ROOMS_LOADED = False
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # allow all origins for local development
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 def startup():
@@ -65,7 +71,7 @@ def study_spots(
     q: str = Query(""),
     lat: float = Query(...),
     lon: float = Query(...),
-    cap: Optional[int] = None, #max_cap
+    cap: Optional[int] = None,
     dur: int = 30,
     k: int = 5,
     preferred_library: Optional[str] = None,
@@ -73,14 +79,37 @@ def study_spots(
 ):
     user_location = (lat, lon)
 
+    # Get closest libraries for scoring
     libraries_results = get_closest_libraries(user_location, LIBRARIES)
     closest_library = libraries_results[0][0]
 
-    #enhanced_query = f"{closest_library} {q}".strip()
+    features_list = [f.strip().lower() for f in features.split(",")] if features else []
 
-    features_list = []
-    if features:
-        features_list = [f.strip().lower() for f in features.split(",") if f.strip()]
+    try:
+        with open(SCHEDULES_DIR / "mockweek.json", "r", encoding="utf-8") as f:
+            mock_json = json.load(f)
+        busy_intervals = parse_google_freebusy(mock_json)
+    except FileNotFoundError:
+        busy_intervals = []
+
+    tz = pytz.timezone("America/Los_Angeles")
+    today = datetime(2026, 2, 10, tzinfo=tz).date()
+    busy_local = []
+    for b in busy_intervals:
+        busy_local.append({
+            "start": b["start"].astimezone(tz),
+            "end": b["end"].astimezone(tz)
+        })
+
+
+    free_periods = get_free_times_for_day(
+        busy_local,
+        today,
+        tz,
+        start_hour=8,
+        end_hour=22,
+        min_duration=dur
+    )
 
     results = retrieve_5_rooms(
         q,
@@ -90,6 +119,9 @@ def study_spots(
         closest_library=closest_library,
         preferred_library=preferred_library,
         preferred_features=features_list,
+        free_periods=free_periods,
+        today=today,
+        tz=tz
     )
 
     formatted_libraries = [
@@ -100,13 +132,10 @@ def study_spots(
         for lib in libraries_results
     ]
 
+
     return {
         "query": q,
-        #"enhanced_query": enhanced_query,
-        "user_location": {
-            "lat": lat,
-            "lon": lon,
-        },
+        "user_location": {"lat": lat, "lon": lon},
         "closest_library": closest_library,
         "preferred_library": preferred_library,
         "features": features_list,
@@ -119,7 +148,7 @@ def study_spots(
 
 @app.get("/schedule")
 def schedule(dur: int = 30):
-    busy_intervals = fetch_freebusy_from_api(['primary'], days_ahead=7)
+    busy_intervals = None
 
     if busy_intervals is None:
         try:

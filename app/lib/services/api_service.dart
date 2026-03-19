@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-class ApiService {
-  static const String baseUrl = "http://10.0.2.2:5000";
+class ApiService { 
+  static const String baseUrl = "http://10.0.2.2:5000"; // for andoird emulator
+  //static const String baseUrl = "http://localhost:8000"; // for local development
 
   static Future<Map<String, dynamic>> getStudySpots({
     required String query,

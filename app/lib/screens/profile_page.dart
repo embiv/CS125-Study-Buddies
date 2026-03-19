@@ -110,7 +110,7 @@ class _ProfilePageState extends State<ProfilePage> {
           const Text("Preferred Library"),
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
-            value: preferredLibrary,
+            initialValue: preferredLibrary,
             items: const [
               DropdownMenuItem(value: "Any", child: Text("Any")),
               DropdownMenuItem(value: "Langson", child: Text("Langson")),
@@ -131,7 +131,7 @@ class _ProfilePageState extends State<ProfilePage> {
           const Text("Maximum Capacity"),
           const SizedBox(height: 8),
           DropdownButtonFormField<int?>(
-            value: maxCapacity,
+            initialValue: maxCapacity,
             items: const [
               DropdownMenuItem<int?>(value: null, child: Text("Any")),
               DropdownMenuItem<int?>(value: 1, child: Text("1")),

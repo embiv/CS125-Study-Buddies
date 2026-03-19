@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../models/user_preferences.dart';
 import 'map_page.dart';
+import 'package:intl/intl.dart';
 
 class StudySpotsPage extends StatefulWidget {
   final UserPreferences preferences;
@@ -52,6 +53,7 @@ class _StudySpotsPageState extends State<StudySpotsPage> {
 
   @override
   Widget build(BuildContext context) {
+    // final results = List<Map<String, dynamic>>.from(data?["results"] ?? []);
     final results = List<Map<String, dynamic>>.from(data?["results"] ?? []);
     final isEmptyQuery = controller.text.trim().isEmpty;
 
@@ -180,6 +182,7 @@ class _StudySpotsPageState extends State<StudySpotsPage> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    // Room name and capacity
                                     Text(
                                       "#${index + 1} ${room["space_name"] ?? "Unknown Space"}",
                                       style: const TextStyle(
@@ -194,20 +197,20 @@ class _StudySpotsPageState extends State<StudySpotsPage> {
                                     ),
                                     const SizedBox(height: 6),
                                     Text(
-                                      "Capacity: ${room["capacity"]} | Start: ${room["start_time"]}",
-                                    ),
-                                    const SizedBox(height: 4),
+                                      "Capacity: ${room["capacity"]} | ${room["start_time"]} - ${room["end_time"]}",
+                                          ),
+                                          const SizedBox(height: 4),
                                     Text(
                                       "Score: ${room["score"] ?? room["match_count"]}",
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Wrap(
-                                      spacing: 6,
-                                      runSpacing: 6,
-                                      children: matchedTerms
+                                          ),
+                                          const SizedBox(height: 8),
+                                      Wrap(
+                                        spacing: 6,
+                                        runSpacing: 6,
+                                        children: matchedTerms
                                           .map((term) => Chip(label: Text(term)))
                                           .toList(),
-                                    ),
+                                      ),
                                   ],
                                 ),
                               ),

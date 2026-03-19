@@ -1,14 +1,18 @@
 import json
 import math
 import time
+from datetime import datetime, timedelta
+import pytz
 import re
 from indexer import get_partition
 from pathlib import Path
 from nltk.stem import PorterStemmer
 from collections import OrderedDict
+from input import fetch_freebusy_from_api, parse_google_freebusy, get_free_times_for_day
 
 BASE = Path(__file__).parent
 INDEX_DIR = BASE / "Index"
+SCHEDULES_DIR = BASE / "Schedules"
 
 ROOMDOCMAP_PATH = INDEX_DIR / "roomdocmap.tsv"
 ROOMDOCSTORE_PATH = INDEX_DIR / "roomdocstore.jsonl"
@@ -93,19 +97,45 @@ def is_range_available(bitset, start_slot, needed_slots):
         return False
     return all(bitset[i] == "1" for i in range(start_slot, end))
 
-def first_available_start(meta, duration_minutes):
+def first_available_start(meta, duration_minutes, free_periods=None, today=None, tz=None):
     room = meta["room"]
     space = meta ["space"]
 
     bitset = room.get("slots_bitset", "")
     start_hhmm = space["hours"]["start"]
     slot_minutes = space.get("slot_minutes", 30)
-
     needed = ceil_div(duration_minutes, slot_minutes)
 
+    if today is None:
+        return None
+    
+    if tz is None:
+        tz = pytz.timezone("America/Los_Angeles")
+
     for i in range(len(bitset) - needed + 1):
-        if is_range_available(bitset, i , needed):
-            return slot_to_12h(i, start_hhmm, slot_minutes)
+        if not is_range_available(bitset, i, needed):
+            continue
+
+        naive_time = datetime.combine(today, datetime.strptime(start_hhmm, "%H:%M").time())
+        slot_start_dt = tz.localize(naive_time) + timedelta(minutes=i * slot_minutes)
+        slot_end_dt = slot_start_dt + timedelta(minutes=duration_minutes)
+
+        # if free_periods are provided, check overlap
+        if free_periods:
+            overlaps = False
+            for start, end in free_periods:
+                if slot_start_dt >= start and slot_end_dt <= end:
+                    overlaps = True
+                    break
+            if not overlaps:
+                continue
+
+        # first available slot that satisfies both bitset and free periods
+        return {
+            "start": slot_to_12h(i, start_hhmm, slot_minutes),
+            "end": slot_to_12h(i + needed, start_hhmm, slot_minutes)
+        }
+
     return None
 
 # 
@@ -121,20 +151,31 @@ def search_or(query):
     return matches
 
 #changing to results to dict so that flutter can get the expected output
-def retrieve_5_rooms(query, max_capacity=None, duration_minutes=None, k=5, closest_library=None, preferred_library=None, preferred_features=None):
+def retrieve_5_rooms(
+    query,
+    max_capacity=None,
+    duration_minutes=None,
+    k=5,
+    closest_library=None,       
+    preferred_library=None,     
+    preferred_features=None,
+    free_periods=None,
+    today=None,
+    tz=None
+):
     if duration_minutes is None:
         duration_minutes = 30
 
     if preferred_features is None:
         preferred_features = []
-    
+
     t0 = time.perf_counter()
     matches = search_or(query) if query.strip() else {}
     results = []
 
     candidate_room_ids = set(matches.keys()) if query.strip() else set(ROOMDOCSTORE.keys())
 
-    
+
     for roomdoc_id in candidate_room_ids:
         meta = ROOMDOCSTORE.get(roomdoc_id)
         if not meta:
@@ -147,9 +188,12 @@ def retrieve_5_rooms(query, max_capacity=None, duration_minutes=None, k=5, close
         if max_capacity is not None and (cap is None or cap > max_capacity):
             continue
 
-        start_time = first_available_start(meta, duration_minutes)
-        if start_time is None:
+        slot_times = first_available_start(meta, duration_minutes, free_periods=free_periods, today=today, tz=tz)
+        if slot_times is None:
             continue
+
+        start_time = slot_times["start"]
+        end_time = slot_times["end"]
         
         space_name = (space.get("name", "") or "")
         room_name = (room.get("name", "") or "")
@@ -171,6 +215,7 @@ def retrieve_5_rooms(query, max_capacity=None, duration_minutes=None, k=5, close
 
         # feature preference score
         room_text = f"{space_name} {room_name}".lower()
+
         feature_score = 0
         matched_feature_prefs = []
 
@@ -179,6 +224,7 @@ def retrieve_5_rooms(query, max_capacity=None, duration_minutes=None, k=5, close
                 feature_score += 2
                 matched_feature_prefs.append(feature)
         
+                
         final_score = text_score + proximity_score + library_score + feature_score
 
         location = space.get("location", {})
@@ -197,6 +243,7 @@ def retrieve_5_rooms(query, max_capacity=None, duration_minutes=None, k=5, close
                 "features": feature_score,
             },
             "start_time": start_time,
+            "end_time": end_time,
             "matched_terms": sorted(matched_terms),
             "matched_preferences": matched_feature_prefs,
             "lat": location.get("lat"),
@@ -204,10 +251,13 @@ def retrieve_5_rooms(query, max_capacity=None, duration_minutes=None, k=5, close
         })
     
     results.sort(key=lambda x: (x["score"], x["match_count"]), reverse=True)
+
+    
     results = results[:k]
 
     ms = (time.perf_counter() - t0) * 1000
     print(f"Search time: {ms:.2f} ms")
+
     return results
 
 # output results
@@ -276,3 +326,5 @@ def main():
 if __name__ == "__main__":
     main()
 
+# flutter run -d web-server
+# python -m uvicorn api:app --reload --host 0.0.0.0 --port 8000
