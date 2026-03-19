@@ -36,8 +36,38 @@ def check_user_availability(duration_minutes=30):
     
     return free_times, busy_intervals, tz
 
+def save_study_plan(busy_intervals, tz):
+    today = datetime.now(tz).date()
+    days_until_monday = (7 - today.weekday()) % 7
+    if days_until_monday == 0:
+        days_until_monday = 7
+    start_date = today + timedelta(days=days_until_monday)
+    week_days = [start_date + timedelta(days=i) for i in range(5)]
+    
+    # save to file 
+    with open("study_plan.txt", "w", encoding="utf-8") as out_file: 
+        out_file.write("=== Available Free Time Blocks ===\n")
+        
+        for day in week_days:
+            free_times = get_free_times_for_day(
+                busy_intervals, day, tz,
+                start_hour=8, end_hour=22, min_duration=30
+            )
+            
+            out_file.write(f"{day.strftime('%A %Y-%m-%d')}:\n")
+            
+            if free_times:
+                for start, end in free_times:
+                    out_file.write(f"  {start.strftime('%H:%M')} - {end.strftime('%H:%M')}\n")
+            else:
+                out_file.write("  No free time\n")
+            
+            out_file.write("\n")
+    
+    print("\nSaved study preferences and free times to study_plan.txt")
+
 def main():
-    print("\nStuddy Buddies!\n\tEveryone's favorite study spot recommendor")
+    print("\nStuddy Buddies!\n\tEveryone's favorite study spot recommender")
     print("-" * 40)
 
     # load room data
@@ -61,6 +91,7 @@ def main():
 
     print("\nChecking your availability...")
     free_times, busy_intervals, tz = check_user_availability(30)
+    save_study_plan(busy_intervals, tz)
 
     # display free times
     if free_times:
