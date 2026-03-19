@@ -9,6 +9,7 @@ from collections import OrderedDict
 
 BASE = Path(__file__).parent
 INDEX_DIR = BASE / "Index"
+STUDY_PLAN_PATH = BASE / "study_plan.txt"
 
 ROOMDOCMAP_PATH = INDEX_DIR / "roomdocmap.tsv"
 ROOMDOCSTORE_PATH = INDEX_DIR / "roomdocstore.jsonl"
@@ -30,6 +31,29 @@ def load_room_docstore():
     with open(ROOMDOCSTORE_PATH, "r", encoding="utf-8") as f:
         for i, line in enumerate(f):
             ROOMDOCSTORE[i] = json.loads(line)
+
+def load_user_free_times():
+    try:
+        with open(STUDY_PLAN_PATH, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        
+        free_times = []
+        
+        for line in lines:
+            line = line.strip()
+            if re.match(r"\d{2}:\d{2} - \d{2}:\d{2}", line):
+                start, end = line.split(" - ")
+                start_h, start_m = map(int, start.split(':'))
+                end_h, end_m = map(int, end.split(':'))
+                
+                free_times.append((
+                    start_h * 60 + start_m,
+                    end_h * 60 + end_m
+                ))
+        return free_times if free_times else None
+        
+    except FileNotFoundError:
+        return None
 
 def normalize_query(q):
     tokens = TOKEN_RE.findall(q.lower())
@@ -108,7 +132,26 @@ def first_available_start(meta, duration_minutes):
             return slot_to_12h(i, start_hhmm, slot_minutes)
     return None
 
-# 
+def is_user_free(room_time_str, user_free_times, duration_minutes):
+    if not user_free_times:
+        return True  
+    
+    # parse room time
+    time_part, ampm = room_time_str.split()
+    h, m = map(int, time_part.split(':'))
+    if ampm == 'PM' and h != 12:
+        h += 12
+    elif ampm == 'AM' and h == 12:
+        h = 0
+    room_start_min = h * 60 + m
+    room_end_min = room_start_min + duration_minutes
+    
+    # check if user is free during room availability
+    for user_start_min, user_end_min in user_free_times:
+        if user_start_min <= room_start_min and room_end_min <= user_end_min:
+            return True
+    return False
+
 def search_or(query):
     stems = normalize_query(query)
     matches = {}
@@ -123,6 +166,10 @@ def search_or(query):
 def retrieve_5_rooms(query, min_capacity=None, duration_minutes=None, k=5):
     if duration_minutes is None:
         duration_minutes = 30
+
+    user_free_times = load_user_free_times()
+    if user_free_times:
+        print(f"Loaded {len(user_free_times)} free time slots from study_plan.txt")
     
     t0 = time.perf_counter()
     matches = search_or(query)
@@ -139,6 +186,9 @@ def retrieve_5_rooms(query, min_capacity=None, duration_minutes=None, k=5):
 
         start_time = first_available_start(meta, duration_minutes)
         if start_time is None:
+            continue
+
+        if not is_user_free(start_time, user_free_times, duration_minutes):
             continue
 
         match_count = len(matched_terms)
