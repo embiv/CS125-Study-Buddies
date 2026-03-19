@@ -88,9 +88,6 @@ def parse_google_freebusy(json_response):
 
 # compute free time given busy intervals & time window 
 def find_free_time(busy_intervals, window_start, window_end, min_duration_minutes=0):
-    """
-    Computes free intervals given busy intervals and a time window
-    """
     if not busy_intervals:
         total_free = [(window_start, window_end)]
         if min_duration_minutes > 0:
@@ -131,9 +128,6 @@ def find_free_time(busy_intervals, window_start, window_end, min_duration_minute
 
 # helper to get free times per day
 def get_free_times_for_day(busy_intervals, day, tz, start_hour=8, end_hour=22, min_duration=30):
-    """
-    day: datetime.date object for the day you want free times
-    """
     window_start = tz.localize(datetime.combine(day, datetime.min.time()).replace(hour=start_hour))
     window_end = tz.localize(datetime.combine(day, datetime.min.time()).replace(hour=end_hour))
     

@@ -62,6 +62,12 @@ def main():
     print("\nChecking your availability...")
     free_times, busy_intervals, tz = check_user_availability(30)
 
+    # display free times
+    if free_times:
+        print(f"\nYou have {len(free_times)} free time slot(s) today:")
+        for start, end in free_times:
+            print(f"   {start.strftime('%I:%M %p')} - {end.strftime('%I:%M %p')}")
+
     load_room_docstore()
     print("\nStudy Spot Seach (Early Demo)")
     print("Type a query. Optional commands:")
@@ -80,6 +86,8 @@ def main():
 
     min_cap = None
     duration= None
+    specified_library = False
+    search_query = None
 
     while True:
         query = input("\nSearch for: ").strip()
@@ -105,15 +113,20 @@ def main():
             print(f"Filters cleared")
             continue
 
-        results = retrieve_5_rooms(query, min_capacity=min_cap, duration_minutes=(duration or 30), k=5)
+        query_lower = query.lower()
+        specified_library = ('langson' in query_lower) or ('science' in query_lower)
+
+        if specified_library:
+            search_query = query
+        else:
+            search_query = f"{closest_library} {query}"
+
+        results = retrieve_5_rooms(search_query, min_capacity=min_cap, duration_minutes=(duration or 30), k=5)
         print_topres(results)
 
-    # include closest library in the query
-    enhanced_query = f"{closest_library} {query}"
-
-    # retrieve results 
-    results = retrieve_5_rooms(enhanced_query, min_capacity=min_cap, duration_minutes=duration, k=5)
-    print_topres(results)
+    # # retrieve results 
+    # results = retrieve_5_rooms(search_query, min_capacity=min_cap, duration_minutes=duration, k=5)
+    # print_topres(results)
 
 
 if __name__ == "__main__":
